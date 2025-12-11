@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const subjectsContainer = document.getElementById("subjectsContainer");
   const attendanceFormContainer = document.getElementById("attendanceFormContainer");
   const timetableSection = document.getElementById("timetableSection");
-  const backendURL = "http://localhost:5000";
+  const backendURL = "https://stay75-backend.onrender.com";
   const logoutBtn = document.getElementById("logoutBtn");
 
   let subjectData = []; // global
