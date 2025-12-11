@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stay75 - Login/Signup</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0f4f8;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .container {
+      background: #fff;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      width: 360px;
+      text-align: center;
+    }
+
+    h2 { color: #2c3e50; margin-bottom: 20px; }
+    .input-wrapper {
+      position: relative;
+      margin-bottom: 15px;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px 40px 10px 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+      box-sizing: border-box;
+    }
+
+    .toggle-password {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      font-size: 1.2rem;
+      user-select: none;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 12px;
+      background-color: #3498db;
+      color: white;
+      font-size: 1rem;
+      cursor: pointer;
+      margin-bottom: 10px;
+    }
+
+    button:hover { opacity: 0.9; }
+
+    .switch-btn {
+      background-color: #28a745;
+    }
+
+    .error { color: red; margin-bottom: 10px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2 id="formTitle">Login</h2>
+    <div class="error" id="errorMsg"></div>
+
+    <div class="input-wrapper">
+      <input type="text" id="username" placeholder="Username" required>
+    </div>
+
+    <div class="input-wrapper">
+      <input type="password" id="password" placeholder="Password" required>
+      <span class="toggle-password" id="togglePassword">👁️</span>
+    </div>
+
+    <button id="actionBtn">Login</button>
+    <button class="switch-btn" id="switchBtn">Switch to Signup</button>
+  </div>
+
+  <script>
+    const backendURL = "http://localhost:5000";
+
+    const formTitle = document.getElementById("formTitle");
+    const usernameInput = document.getElementById("username");
+    const passwordInput = document.getElementById("password");
+    const errorMsg = document.getElementById("errorMsg");
+
+    const actionBtn = document.getElementById("actionBtn");
+    const switchBtn = document.getElementById("switchBtn");
+    const togglePassword = document.getElementById("togglePassword");
+
+    let isLogin = true;
+
+    // ----- PASSWORD TOGGLE -----
+    togglePassword.addEventListener("click", () => {
+      if (passwordInput.type === "password") {
+        passwordInput.type = "text";
+        togglePassword.textContent = "🙈"; // closed-eye when visible
+      } else {
+        passwordInput.type = "password";
+        togglePassword.textContent = "👁️"; // eye when hidden
+      }
+    });
+
+    // ----- SWITCH BETWEEN LOGIN & SIGNUP -----
+    switchBtn.addEventListener("click", () => {
+      isLogin = !isLogin;
+      formTitle.textContent = isLogin ? "Login" : "Signup";
+      actionBtn.textContent = isLogin ? "Login" : "Register";
+      switchBtn.textContent = isLogin ? "Switch to Signup" : "Switch to Login";
+      errorMsg.textContent = "";
+      usernameInput.value = "";
+      passwordInput.value = "";
+      passwordInput.type = "password";
+      togglePassword.textContent = "👁️";
+    });
+
+    // ----- ACTION BUTTON -----
+    actionBtn.addEventListener("click", async () => {
+      const username = usernameInput.value.trim();
+      const password = passwordInput.value.trim();
+      errorMsg.textContent = "";
+
+      if (!username || !password) {
+        errorMsg.textContent = "Please fill all fields";
+        return;
+      }
+
+      try {
+        const url = isLogin ? `${backendURL}/auth/login` : `${backendURL}/auth/register`;
+        const res = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, password })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          if (isLogin) {
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('username', username);
+            window.location.href = "index.html";
+          } else {
+            alert("User registered successfully! Please login.");
+            switchBtn.click(); // switch to login
+          }
+        } else {
+          errorMsg.textContent = data.error || "Operation failed";
+        }
+
+      } catch (err) {
+        console.error(err);
+        errorMsg.textContent = "Server error. Try again";
+      }
+    });
+
+    // ----- AUTO-REDIRECT IF LOGGED IN -----
+    window.addEventListener('load', () => {
+      const token = localStorage.getItem('token');
+      if (token) window.location.href = "index.html";
+    });
+  </script>
+</body>
+</html>
